@@ -25,6 +25,13 @@ if __name__ == "__main__":
         make_empty_file('.installed/.wget')
 
     subprocess.run(['conda', 'env', 'update', '-f', 'environment.yml'], shell=True)
+
+    while not os.path.isfile('.installed/.fish_speech'):
+        os.chdir("./fish_speech")
+        subprocess.run(['python', '-m', 'pip', 'install', '-e', '.'])
+        os.chdir("..")
+        make_empty_file('.installed/.fish_speech')
+
     subprocess.run(['python', '-m', 'pip', 'install', '-r', 'requirements.txt'])
 
     subprocess.run(['conda', 'clean', '-y', '--all'], shell=True)

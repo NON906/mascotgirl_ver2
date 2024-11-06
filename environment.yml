@@ -96,11 +96,11 @@ dependencies:
   - pyqt
   - pyrsistent
   - pysocks
-  - python
+  - python=3.10
   - python-dateutil
   - python-fastjsonschema
   - python_abi
-  - pytorch
+  - pytorch=2.4.1
   - pytorch-mutex
   - pywin32
   - pywinpty
@@ -118,8 +118,8 @@ dependencies:
   - terminado
   - tinycss2
   - tk
-  - torchaudio
-  - torchvision
+  - torchaudio=2.4.1
+  - torchvision=0.19.1
   - tornado
   - traitlets
   - typing_extensions
@@ -138,5 +138,5 @@ dependencies:
   - zipp
   - zlib
   - zstd
-  - pytorch-cuda=11.8
+  - pytorch-cuda=12.1
   - pydantic
