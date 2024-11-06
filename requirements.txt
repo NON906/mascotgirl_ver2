@@ -1,0 +1,4 @@
+wxpython
+opencv-python
+onnxruntime-gpu
+rembg[GPU]
