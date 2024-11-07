@@ -14,8 +14,8 @@ def make_images(numpy_content, save_dir_path):
     mascot_image.upload_image(numpy_content, False)
 
     eyebrow_options = ["normal", "troubled", "angry", "happy", "serious"]
-    eye_options = ["normal", "closed", "happy_closed", "relaxed_closed", "surprized", "wink"]
-    eye_values = [None, [0, 1.0, 1.0], [1, 1.0, 1.0], [3, 1.0, 1.0], [2, 1.0, 1.0], [1, 1.0, 0.0]]
+    eye_options = ["normal", "half", "closed", "happy_closed", "relaxed_closed", "surprized", "wink"]
+    eye_values = [None, [0, 0.5, 0.5], [0, 1.0, 1.0], [1, 1.0, 1.0], [3, 1.0, 1.0], [2, 1.0, 1.0], [1, 1.0, 0.0]]
     mouth_options = ["normal", "aaa", "iii", "uuu", "eee", "ooo"]
 
     for eyebrow in eyebrow_options:
