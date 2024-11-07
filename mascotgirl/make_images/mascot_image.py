@@ -21,7 +21,7 @@ import json
 from pydantic import BaseModel
 from contextlib import redirect_stdout
 
-import image_setting
+from . import image_setting
 
 class MascotImage:
     last_torch_input_image = None

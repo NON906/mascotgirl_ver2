@@ -5,7 +5,7 @@ import os
 
 import cv2
 
-from mascot_image import MascotImage
+from .mascot_image import MascotImage
 
 def make_images(numpy_content, save_dir_path):
     os.makedirs(save_dir_path, exist_ok=True)
