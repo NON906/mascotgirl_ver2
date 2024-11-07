@@ -16,9 +16,12 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from mascotgirl.make_images.make_images import make_images
+from mascotgirl.chat_hermes import ChatHermes
 
 def main():
     td = tempfile.TemporaryDirectory()
+
+    chat_hermes = ChatHermes('NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF', 'Hermes-2-Pro-Llama-3-8B-Q6_K.gguf', 999, 128, 2048)
 
     os.chdir('fish_speech')
     voice_process = subprocess.Popen(['start.bat'])
@@ -53,6 +56,20 @@ def main():
             return {'is_success': True}
         finally:
             file.file.close()
+
+    class ChatHermesInferRequest(BaseModel):
+        messages: list[dict]
+
+    @app.post("/chat_hermes_infer")
+    async def chat_hermes_infer(request: ChatHermesInferRequest):
+        ret = chat_hermes.run_infer(request.messages)
+        return {'is_success': ret}
+
+    @app.get("/get_chat_hermes_infer")
+    async def get_chat_hermes_infer():
+        is_finished, ret = chat_hermes.get_recieved_message()
+        ret['is_finished'] = is_finished
+        return ret
 
     class VoiceInferRequest(BaseModel):
         text: str
