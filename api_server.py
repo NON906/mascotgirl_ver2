@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import shutil
 import glob
 import tempfile
@@ -11,6 +12,7 @@ import requests
 import cv2
 import numpy as np
 import uvicorn
+from faster_whisper import WhisperModel
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -55,9 +57,29 @@ def main():
             for del_path in del_paths:
                 os.remove(del_path)
 
-            with open('settings/reference_voice' + os.path.splitext(file.filename)[1], mode='wb') as f:
+            file_path = 'settings/reference_voice' + os.path.splitext(file.filename)[1]
+            with open(file_path, mode='wb') as f:
                 shutil.copyfileobj(file.file, f)
-            return {'is_success': True}
+
+            model = WhisperModel(
+                "large-v3",
+                device="cuda",
+                compute_type="float16",
+            )
+            segments, _ = model.transcribe(
+                file_path,
+                beam_size=5,
+                language="ja",
+                initial_prompt="こんにちは。元気、ですかー？私は…ちゃんと元気だよ！",
+            )
+            reference_text = ''
+            for segment in segments:
+                reference_text += segment.text
+            
+            with open('settings/reference_text.txt', mode='w') as f:
+                f.write(reference_text)
+
+            return {'reference_text': reference_text}
         finally:
             file.file.close()
 
@@ -90,10 +112,13 @@ def main():
         reference_path = glob.glob('settings/reference_voice.*')[0]
         result_path = os.path.join(td.name, 'result')
 
+        with open('settings/reference_text.txt', mode='r') as f:
+            reference_text = f.read()
+
         subprocess.run(['python', '-m', 'fish_speech.tools.post_api',
             '--text', request.text,
             '--reference_audio', reference_path,
-            '--reference_text', '',
+            '--reference_text', reference_text,
             '--output', result_path,
             '--format', request.format_ext,
             '--play', '',
