@@ -47,6 +47,8 @@ def main():
 
     @app.post("/copy_images")
     async def copy_images(request: CopyImagesRequest):
+        if os.path.isdir(request.path):
+            shutil.rmtree(request.path)
         shutil.copytree('settings/images', request.path)
         return {'is_success': True}
 
