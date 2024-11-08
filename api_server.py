@@ -29,6 +29,10 @@ def main():
 
     app = FastAPI()
 
+    @app.get("/health")
+    async def health():
+        return {'is_success': True}
+
     @app.post("/upload_base_image")
     async def upload_base_image(file: bytes = File(...)):
         arr = np.frombuffer(file, dtype=np.uint8)
@@ -68,6 +72,8 @@ def main():
     @app.get("/get_chat_hermes_infer")
     async def get_chat_hermes_infer():
         is_finished, ret = chat_hermes.get_recieved_message()
+        if ret is None:
+            ret = {}
         ret['is_finished'] = is_finished
         return ret
 
