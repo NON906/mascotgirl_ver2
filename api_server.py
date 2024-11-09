@@ -52,6 +52,26 @@ def main():
         shutil.copytree('settings/images', request.path)
         return {'is_success': True}
 
+    @app.post("/upload_background_image")
+    async def upload_background_image(file: UploadFile = File(...)):
+        try:
+            del_paths = glob.glob('settings/background.*')
+            for del_path in del_paths:
+                os.remove(del_path)
+
+            file_path = 'settings/background' + os.path.splitext(file.filename)[1]
+            with open(file_path, mode='wb') as f:
+                shutil.copyfileobj(file.file, f)
+
+            return {'is_success': True}
+        finally:
+            file.file.close()
+
+    @app.get("/get_background_image")
+    async def get_background_image():
+        result_path = glob.glob('settings/background.*')[0]
+        return FileResponse(path=result_path)
+
     @app.post("/upload_reference_voice")
     async def upload_reference_voice(file: UploadFile = File(...)):
         try:
