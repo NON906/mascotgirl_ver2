@@ -72,6 +72,21 @@ def main():
         result_path = glob.glob('settings/background.*')[0]
         return FileResponse(path=result_path)
 
+    class SetSystemMessageRequest(BaseModel):
+        message: str
+    
+    @app.post("/set_system_message")
+    async def set_system_message(request: SetSystemMessageRequest):
+        with open('settings/system_message.txt', mode='w') as f:
+            f.write(request.message)
+        return {'is_success': True}
+
+    @app.get("/get_system_message")
+    async def get_system_message():
+        with open('settings/system_message.txt', mode='r') as f:
+            message = f.read()
+        return {'message': message}
+
     @app.post("/upload_reference_voice")
     async def upload_reference_voice(file: UploadFile = File(...)):
         try:
