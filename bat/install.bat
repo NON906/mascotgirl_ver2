@@ -32,7 +32,6 @@ if NOT EXIST "%~dp0.installed\.git" (
 call "%USERPROFILE%\miniconda3\condabin\conda" activate mascotgirl_ver2
 
 cd "mascotgirl_ver2"
-git pull
 python install.py
 cd ".."
 

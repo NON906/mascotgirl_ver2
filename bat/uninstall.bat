@@ -1,7 +1,7 @@
 @echo off
 setlocal
 rd /S /Q mascotgirl_ver2
-"%USERPROFILE%\miniconda3\condabin\conda" remove -n mascotgirl_ver2 --all -y
+call "%USERPROFILE%\miniconda3\condabin\conda" remove -n mascotgirl_ver2 --all -y
 if EXIST "%~dp0.installed\.miniconda" (
     powershell -Command "Start-Process -Wait %USERPROFILE%\miniconda3\Uninstall-Miniconda3.exe /S"
 )
