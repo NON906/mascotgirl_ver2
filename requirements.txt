@@ -5,6 +5,6 @@ rembg[GPU]
 https://github.com/AnyaCoder/fish-speech/releases/download/v0.1.0/triton_windows-0.1.0-py3-none-any.whl
 cachetools
 git+https://github.com/furnqse/gpt-stream-json-parser.git
-https://github.com/oobabooga/llama-cpp-python-cuBLAS-wheels/releases/download/wheels/llama_cpp_python-0.2.36+cu121-cp310-cp310-win_amd64.whl
+llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu121
 langchain
 langchain-community

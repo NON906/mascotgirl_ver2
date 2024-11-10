@@ -23,7 +23,7 @@ from mascotgirl.chat_hermes import ChatHermes
 def main():
     td = tempfile.TemporaryDirectory()
 
-    chat_hermes = ChatHermes('NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF', 'Hermes-2-Pro-Llama-3-8B-Q6_K.gguf', 999, 128, 2048)
+    chat_hermes = ChatHermes('NousResearch/Hermes-3-Llama-3.1-8B-GGUF', 'Hermes-3-Llama-3.1-8B.Q6_K.gguf', 999, 128, 2048)
 
     os.chdir('fish_speech')
     voice_process = subprocess.Popen(['start.bat'])
