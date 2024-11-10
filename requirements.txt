@@ -8,3 +8,5 @@ git+https://github.com/furnqse/gpt-stream-json-parser.git
 llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu121
 langchain
 langchain-community
+pycloudflared
+qrcode

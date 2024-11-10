@@ -7,6 +7,8 @@ if EXIST "%~dp0.installed\.miniconda" (
 )
 rd /S /Q .installed
 del /Q "run.bat"
+del /Q "run_local_net.bat"
+del /Q "run_cloudflare.bat"
 del /Q "update.bat"
 del /Q "uninstall.bat" && echo アンインストールが完了しました && pause && exit /b
 endlocal

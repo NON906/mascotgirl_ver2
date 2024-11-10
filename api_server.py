@@ -12,6 +12,7 @@ import requests
 import cv2
 import numpy as np
 import uvicorn
+import threading
 from pathlib import Path
 from faster_whisper import WhisperModel
 from fastapi import FastAPI, File, UploadFile
@@ -22,7 +23,7 @@ from conda3rdparty.common import CondaEnv, gather_license_info, CondaPackageFile
 from mascotgirl.make_images.make_images import make_images
 from mascotgirl.chat_hermes import ChatHermes
 
-def main():
+def main(args):
     td = tempfile.TemporaryDirectory()
 
     chat_hermes = ChatHermes('NousResearch/Hermes-3-Llama-3.1-8B-GGUF', 'Hermes-3-Llama-3.1-8B.Q6_K.gguf', 999, 128, 2048)
@@ -55,6 +56,13 @@ def main():
             shutil.rmtree(request.path)
         shutil.copytree('settings/images', request.path)
         return {'is_success': True}
+
+    @app.get("/get_image")
+    async def get_image(id: str):
+        path = f'settings/images/{id}.png'
+        if not os.path.isfile(path):
+            return JSONResponse(content={'is_success': False}, status_code=404)
+        return FileResponse(path=path)
 
     @app.post("/upload_background_image")
     async def upload_background_image(file: UploadFile = File(...)):
@@ -202,17 +210,50 @@ def main():
             run_flag = False
 
     if run_flag:
-        subprocess.Popen(["client\\MascotGirl_Client_ver2\\MascotGirl_Client_ver2.exe", "-start_local"])
-        uvicorn.run(app, host='0.0.0.0', port=55007)
+        if args.net_mode == 'none':
+            subprocess.Popen(["client\\MascotGirl_Client_ver2\\MascotGirl_Client_ver2.exe", "-start_local"])
+            uvicorn.run(app, host='127.0.0.1', port=55007)
+        else:
+            if args.net_mode == 'local_net':
+                if os.name == 'nt':
+                    import socket
+                    host = socket.gethostname()
+                    ipaddress = socket.gethostbyname(host)
+                    http_url = 'http://' + ipaddress + ':' + str(55007)
+            elif args.net_mode == 'cloudflare':
+                from pycloudflared import try_cloudflare
+                cloudflare_result = try_cloudflare(port=55007)
+                http_url = cloudflare_result.tunnel
+
+            import qrcode
+            open_qrcode = True
+            qrcode_pil = qrcode.make('mascotgirl2://' + http_url)
+            qrcode_cv2 = np.array(qrcode_pil, dtype=np.uint8) * 255
+            def qrcode_thread_func():
+                cv2.imshow('Please scan.', qrcode_cv2)
+                while open_qrcode:
+                    cv2.waitKey(1)
+            qrcode_thread = threading.Thread(target=qrcode_thread_func)
+            qrcode_thread.start()
+
+            uvicorn.run(app, host='0.0.0.0', port=55007)
+
+            open_qrcode = False
+            cv2.destroyWindow('Please scan.')
 
     voice_process.kill()
 
     return False
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--net_mode', choices=['none', 'local_net', 'cloudflare'], default='none')
+    args = parser.parse_args()
+
     try:
         loop_flag = True
         while loop_flag:
-            loop_flag = main()
+            loop_flag = main(args)
     except KeyboardInterrupt:
         pass

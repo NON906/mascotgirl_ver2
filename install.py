@@ -50,3 +50,6 @@ if __name__ == "__main__":
         shutil.unpack_archive('MascotGirl_Client_ver2.zip', 'client')
         os.remove('MascotGirl_Client_ver2.zip')
         make_empty_file('.installed/.client')
+
+    shutil.copy2('bat/run_local_net.bat', '..')
+    shutil.copy2('bat/run_cloudflare.bat', '..')
