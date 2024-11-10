@@ -1,0 +1,26 @@
+# 3rd-party licenses
+
+## Binary files
+wget: GPL-3.0
+miniconda: 3-clause BSD
+
+## Sub modules in main repository
+talking-head-anime-3-demo: MIT
+fish-speech: CC-BY-NC-SA-4.0
+
+## Other in main repository
+lbpcascade_animeface.xml: MIT
+
+## LLM Models
+NousResearch/Hermes-3-Llama-3.1-8B-GGUF: Llama 3 Community License Agreement
+
+## For client app
+NativeFileSO: Mozilla Public License Version 2.0
+ZXing: Apache License 2.0
+uLipSync: MIT (Copyright (c) 2021 hecomi)
+UnityCommandLineParser: MIT (Copyright (c) 2020-2022 Voltstro-Studios)
+System.ComponentModel.Annotations: MIT
+McMaster.Extensions.CommandLineUtils: Apache License 2.0
+
+## Python and packages{% for info in license_infos %}
+{{ info['name'] }} {{ info['version'] }}: {{ info['license'] }}{% endfor %}

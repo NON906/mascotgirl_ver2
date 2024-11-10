@@ -2,6 +2,7 @@ name: mascotgirl_ver2
 channels:
   - pytorch
   - nvidia
+  - ilastik-forge
   - conda-forge
   - defaults
 dependencies:
@@ -140,3 +141,4 @@ dependencies:
   - zstd
   - pytorch-cuda=12.1
   - pydantic
+  - conda-3rdparty

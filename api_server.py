@@ -12,10 +12,12 @@ import requests
 import cv2
 import numpy as np
 import uvicorn
+from pathlib import Path
 from faster_whisper import WhisperModel
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
+from conda3rdparty.common import CondaEnv, gather_license_info, CondaPackageFileNotFound, base_license_renderer
 
 from mascotgirl.make_images.make_images import make_images
 from mascotgirl.chat_hermes import ChatHermes
@@ -167,6 +169,18 @@ def main():
     async def get_voice_infer():
         result_path = glob.glob(os.path.join(td.name, 'result.*'))[0]
         return FileResponse(path=result_path)
+
+    @app.get("/license", response_class=PlainTextResponse)
+    async def license():
+        out = []
+        env = CondaEnv("mascotgirl_ver2")
+        for package in env.package_list:
+            try:
+                out.append(gather_license_info(package))
+            except CondaPackageFileNotFound:
+                pass
+        ret = base_license_renderer(out, Path('license_template.txt'))
+        return ret
 
     loop_flag = True
     run_flag = True
