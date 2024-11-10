@@ -15,7 +15,7 @@ import uvicorn
 from pathlib import Path
 from faster_whisper import WhisperModel
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
 from pydantic import BaseModel
 from conda3rdparty.common import CondaEnv, gather_license_info, CondaPackageFileNotFound, base_license_renderer
 
@@ -49,6 +49,8 @@ def main():
 
     @app.post("/copy_images")
     async def copy_images(request: CopyImagesRequest):
+        if not os.path.isdir('settings/images'):
+            return JSONResponse(content={'is_success': False}, status_code=404)
         if os.path.isdir(request.path):
             shutil.rmtree(request.path)
         shutil.copytree('settings/images', request.path)
@@ -71,8 +73,10 @@ def main():
 
     @app.get("/get_background_image")
     async def get_background_image():
-        result_path = glob.glob('settings/background.*')[0]
-        return FileResponse(path=result_path)
+        result_path = glob.glob('settings/background.*')
+        if result_path is None or len(result_path) <= 0:
+            return JSONResponse(content={'is_success': False}, status_code=404)
+        return FileResponse(path=result_path[0])
 
     class SetSystemMessageRequest(BaseModel):
         message: str
@@ -85,6 +89,8 @@ def main():
 
     @app.get("/get_system_message")
     async def get_system_message():
+        if not os.path.isfile('settings/system_message.txt'):
+            return JSONResponse(content={'is_success': False}, status_code=404)
         with open('settings/system_message.txt', mode='r') as f:
             message = f.read()
         return {'message': message}
