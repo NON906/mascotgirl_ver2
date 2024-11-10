@@ -196,6 +196,7 @@ def main():
             run_flag = False
 
     if run_flag:
+        subprocess.Popen(["client\\MascotGirl_Client_ver2\\MascotGirl_Client_ver2.exe", "-start_local"])
         uvicorn.run(app, host='0.0.0.0', port=55007)
 
     voice_process.kill()

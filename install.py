@@ -4,6 +4,7 @@
 import os
 import subprocess
 import sys
+import shutil
 import requests
 
 def wget(url: str, save_path: str):
@@ -43,3 +44,9 @@ if __name__ == "__main__":
         wget('https://www.dropbox.com/s/8qvo0u5lw7hqvtq/face_morpher.pt?dl=0', 'talking_head_anime_3_demo/data/models/standard_float/face_morpher.pt')
         wget('https://www.dropbox.com/s/qmq1dnxrmzsxb4h/two_algo_face_body_rotator.pt?dl=0', 'talking_head_anime_3_demo/data/models/standard_float/two_algo_face_body_rotator.pt')
         make_empty_file('.installed/.tha3')
+
+    while not os.path.isfile('.installed/.client'):
+        wget('https://github.com/NON906/mascotgirl_ver2_client/releases/download/v2.0.0/MascotGirl_Client_ver2.zip', 'MascotGirl_Client_ver2.zip')
+        shutil.unpack_archive('MascotGirl_Client_ver2.zip', 'client')
+        os.remove('MascotGirl_Client_ver2.zip')
+        make_empty_file('.installed/.client')
