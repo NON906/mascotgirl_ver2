@@ -47,9 +47,12 @@ if __name__ == "__main__":
 
     while not os.path.isfile('.installed/.client2'):
         wget('https://github.com/NON906/mascotgirl_ver2_client/releases/download/v2.0.2/MascotGirl_Client_ver2.zip', 'MascotGirl_Client_ver2.zip')
-        shutil.unpack_archive('MascotGirl_Client_ver2.zip', 'client2')
+        shutil.unpack_archive('MascotGirl_Client_ver2.zip', 'client')
         os.remove('MascotGirl_Client_ver2.zip')
         make_empty_file('.installed/.client2')
 
+    shutil.copy2('bat/run.bat', '..')
     shutil.copy2('bat/run_local_net.bat', '..')
     shutil.copy2('bat/run_cloudflare.bat', '..')
+    shutil.copy2('bat/update.bat', '..')
+    shutil.copy2('bat/uninstall.bat', '..')
