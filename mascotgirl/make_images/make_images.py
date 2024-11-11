@@ -10,6 +10,8 @@ from .mascot_image import MascotImage
 def make_images(numpy_content, save_dir_path):
     os.makedirs(save_dir_path, exist_ok=True)
 
+    numpy_content = cv2.cvtColor(numpy_content, cv2.COLOR_BGRA2RGBA)
+
     mascot_image = MascotImage()
     mascot_image.upload_image(numpy_content, False)
 
@@ -35,6 +37,8 @@ def make_images(numpy_content, save_dir_path):
 
                 mascot_image.update()
                 image = mascot_image.get_numpy_image()
+
+                image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA)
 
                 cv2.imwrite(os.path.join(save_dir_path, f'{eyebrow}_{eye}_{mouth}.png'), image)
             
