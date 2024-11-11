@@ -45,7 +45,7 @@ def image_setting(image, cascade_path=None, model_name='isnet-anime', skip_resha
         mat = cv2.getAffineTransform(src_pts, dst_pts)
         dst = cv2.warpAffine(image, mat, (512, 512))
 
-        crop_src_pts = np.float32([[[0.0, 0.0]], [[512.0, 512.0]]])
+        crop_src_pts = np.float32([[[0.0, 0.0]], [[image.shape[1], image.shape[0]]]])
         result_box = cv2.transform(crop_src_pts, mat)
         crop_pts = [int(result_box[0, 0, 0]) + 1, int(result_box[0, 0, 1]) + 1, int(result_box[1, 0, 0]), int(result_box[1, 0, 1])]
         if crop_pts[0] < 0:
