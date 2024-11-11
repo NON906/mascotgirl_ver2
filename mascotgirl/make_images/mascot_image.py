@@ -48,6 +48,8 @@ class MascotImage:
 
     is_uploading = False
 
+    crop_pts = [0, 0, 512, 512]
+
     def __init__(self, mode='standard_float'):
         self.device = torch.device('cuda')
         try:
@@ -149,7 +151,7 @@ class MascotImage:
     def upload_image(self, numpy_content, skip_setting, rembg_model_name='isnet-anime'):
         self.is_uploading = True
         if not skip_setting:
-            numpy_content = image_setting.image_setting(numpy_content, model_name=rembg_model_name)
+            numpy_content, self.crop_pts = image_setting.image_setting(numpy_content, model_name=rembg_model_name)
             if numpy_content is None:
                 self.is_uploading = False
                 return False
@@ -170,6 +172,7 @@ class MascotImage:
         ret = self.numpy_image
         if ret is None or ret.shape != (512, 512, 4):
             return None
+        ret = ret[self.crop_pts[1]:self.crop_pts[3], self.crop_pts[0]:self.crop_pts[2]]
         return ret
 
     def set_eyebrow(self, target, left, right):

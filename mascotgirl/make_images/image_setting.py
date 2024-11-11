@@ -44,15 +44,28 @@ def image_setting(image, cascade_path=None, model_name='isnet-anime', skip_resha
 
         mat = cv2.getAffineTransform(src_pts, dst_pts)
         dst = cv2.warpAffine(image, mat, (512, 512))
+
+        crop_src_pts = np.float32([[[0.0, 0.0]], [[512.0, 512.0]]])
+        result_box = cv2.transform(crop_src_pts, mat)
+        crop_pts = [int(result_box[0, 0, 0]) + 1, int(result_box[0, 0, 1]) + 1, int(result_box[1, 0, 0]), int(result_box[1, 0, 1])]
+        if crop_pts[0] < 0:
+            crop_pts[0] = 0
+        if crop_pts[1] < 0:
+            crop_pts[1] = 0
+        if crop_pts[2] > 512:
+            crop_pts[2] = 512
+        if crop_pts[3] > 512:
+            crop_pts[3] = 512
     else:
         dst = image
+        crop_pts = [0, 0, 512, 512]
 
     if image.shape[2] != 4 or image[0, 0, 3] >= 255:
         if rembg_session is None:
             rembg_session = rembg.new_session(model_name)
         dst = rembg.remove(dst, session=rembg_session)
 
-    return dst
+    return dst, crop_pts
 
 if __name__ == "__main__":
     import argparse
@@ -64,7 +77,7 @@ if __name__ == "__main__":
 
     image = cv2.imread(args.input, -1)
 
-    result = image_setting(image, args.cascade)
+    result, _ = image_setting(image, args.cascade)
 
     if result is not None:
         cv2.imwrite(args.output, result)
