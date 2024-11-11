@@ -98,7 +98,7 @@ class ChatHermes:
             self.recieved_message = ''
             for chunk in self.chain.stream({"history": history.messages}):
                 self.recieved_message += chunk
-                if '{' in self.recieved_message and self.recieved_message.count('{') == self.recieved_message.count('}'):
+                if '{' in self.recieved_message and self.recieved_message.count('{') <= self.recieved_message.count('}'):
                     break
 
             self.is_running = False
@@ -109,10 +109,11 @@ class ChatHermes:
         return True
 
     def get_recieved_message(self):
-        recieved_message = self.recieved_message
+        recieved_message = self.recieved_message.replace('”', '"')
         if '{' in recieved_message:
             recieved_message = '{' + recieved_message.split('{', 1)[1]
-            if recieved_message.count('{') == recieved_message.count('}'):
-                recieved_message = recieved_message.rsplit('}', 1)[0] + '}'
+            rsplit_size = recieved_message.count('}') - recieved_message.count('{') + 1
+            if rsplit_size > 0:
+                recieved_message = recieved_message.rsplit('}', rsplit_size)[0] + '}'
             return not self.is_running, force_parse_json(recieved_message)
         return not self.is_running, {}
