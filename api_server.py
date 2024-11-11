@@ -26,11 +26,11 @@ from mascotgirl.chat_hermes import ChatHermes
 def main(args):
     td = tempfile.TemporaryDirectory()
 
-    chat_hermes = ChatHermes('NousResearch/Hermes-3-Llama-3.1-8B-GGUF', 'Hermes-3-Llama-3.1-8B.Q6_K.gguf', 999, 128, 2048)
-
     os.chdir('fish_speech')
     voice_process = subprocess.Popen(['start.bat'])
     os.chdir('..')
+
+    chat_hermes = None
 
     app = FastAPI()
 
@@ -208,6 +208,8 @@ def main(args):
         except:
             loop_flag = False
             run_flag = False
+
+    chat_hermes = ChatHermes('NousResearch/Hermes-3-Llama-3.1-8B-GGUF', 'Hermes-3-Llama-3.1-8B.Q6_K.gguf', 'auto', 128, 2048)
 
     if run_flag:
         if args.net_mode == 'none':

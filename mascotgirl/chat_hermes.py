@@ -5,6 +5,8 @@ import os
 import threading
 from huggingface_hub import hf_hub_download
 from gpt_stream_parser import force_parse_json
+import torch
+from contextlib import redirect_stderr
 
 from langchain.prompts import StringPromptTemplate
 from langchain_community.chat_message_histories import ChatMessageHistory
@@ -58,6 +60,27 @@ class ChatHermes:
             download_path = file_name
         else:
             download_path = hf_hub_download(repo_id=model_path, filename=file_name)
+
+        if n_gpu_layers == 'auto':
+            if not torch.cuda.is_available():
+                n_gpu_layers = 0
+            else:
+                from llama_cpp import Llama
+                with redirect_stderr(open(os.devnull, 'w')):
+                    device = torch.device('cuda')
+                    total_memory = torch.cuda.get_device_properties(device).total_memory
+                    allocated_memory = torch.cuda.memory_allocated(device)
+                    free_memory = total_memory - allocated_memory
+
+                    model_size = os.path.getsize(download_path) * 1.1
+                    llm_pre = Llama(model_path=download_path, n_gpu_layers=0)
+                    layers_count = int(llm_pre.metadata['llama.block_count'])
+
+                    n_gpu_layers = int(free_memory * layers_count / model_size)
+
+                    del llm_pre
+
+                print('Auto setting n_gpu_layers is ' + str(n_gpu_layers) + '.')
 
         llm = LlamaCpp(
             model_path=download_path,
