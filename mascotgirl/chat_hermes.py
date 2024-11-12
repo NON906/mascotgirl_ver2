@@ -90,7 +90,7 @@ class ChatHermes:
             streaming=True,
             stop=['<|im_end|>', ],
             max_tokens=1500,
-            temperature=0.8,
+            #temperature=0.8,
             repetition_penalty=1.1,
         )
 

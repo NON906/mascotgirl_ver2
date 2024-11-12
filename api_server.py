@@ -26,6 +26,8 @@ from mascotgirl.make_images.make_images import make_images
 from mascotgirl.chat_hermes import ChatHermes
 
 def main(args):
+    global chat_hermes
+
     td = tempfile.TemporaryDirectory()
 
     os.chdir('fish_speech')
@@ -38,6 +40,34 @@ def main(args):
 
     @app.get("/health")
     async def health():
+        return {'is_success': True}
+
+    @app.get("/get_settings")
+    async def get_settings():
+        if os.path.isfile('settings/detail_settings.json'):
+            return FileResponse(path='settings/detail_settings.json')
+        return {}
+
+    class SetSettingRequest(BaseModel):
+        name: str
+        value: str | float | int | bool
+
+    @app.post("/set_setting")
+    async def set_setting(request: SetSettingRequest):
+        new_dict = {}
+        if os.path.isfile('settings/detail_settings.json'):
+            with open('settings/detail_settings.json', mode='r') as f:
+                new_dict = json.load(f)
+        new_dict[request.name] = request.value
+
+        if request.name == 'llm_repo_name' or request.name == 'llm_file_name':
+            global chat_hermes
+            if chat_hermes is not None:
+                del chat_hermes
+            chat_hermes = None
+
+        with open('settings/detail_settings.json', mode='w') as f:
+            json.dump(new_dict, f)
         return {'is_success': True}
 
     @app.post("/upload_base_image")
@@ -159,6 +189,18 @@ def main(args):
 
     @app.post("/chat_hermes_infer")
     async def chat_hermes_infer(request: ChatHermesInferRequest):
+        global chat_hermes
+        if chat_hermes is None:
+            if os.path.isfile('settings/detail_settings.json'):
+                with open('settings/detail_settings.json', mode='r') as f:
+                    settings_dict = json.load(f)
+            else:
+                settings_dict = {}
+            if not 'llm_repo_name' in settings_dict or settings_dict['llm_repo_name'] == '':
+                settings_dict['llm_repo_name'] = 'NousResearch/Hermes-3-Llama-3.1-8B-GGUF'
+            if not 'llm_file_name' in settings_dict or settings_dict['llm_file_name'] == '':
+                settings_dict['llm_file_name'] = 'Hermes-3-Llama-3.1-8B.Q6_K.gguf'
+            chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 2048)
         ret = chat_hermes.run_infer(request.messages)
         return {'is_success': ret}
 
@@ -228,8 +270,6 @@ def main(args):
             loop_flag = False
             run_flag = False
 
-    chat_hermes = ChatHermes('NousResearch/Hermes-3-Llama-3.1-8B-GGUF', 'Hermes-3-Llama-3.1-8B.Q6_K.gguf', 'auto', 128, 2048)
-
     if run_flag:
         if args.net_mode == 'none':
             subprocess.Popen(["client\\MascotGirl_Client_ver2\\MascotGirl_Client_ver2.exe", "-start_local"])
@@ -265,6 +305,8 @@ def main(args):
             cv2.destroyWindow('Please scan.')
 
     voice_process.kill()
+    if chat_hermes is not None:
+        del chat_hermes
 
     return False
 
