@@ -13,6 +13,8 @@ import cv2
 import numpy as np
 import uvicorn
 import threading
+import json
+import uuid
 from pathlib import Path
 from faster_whisper import WhisperModel
 from fastapi import FastAPI, File, UploadFile
@@ -43,7 +45,23 @@ def main(args):
         arr = np.frombuffer(file, dtype=np.uint8)
         img = cv2.imdecode(arr, flags=cv2.IMREAD_UNCHANGED)
         make_images(img, 'settings/images')
+        if os.path.isfile('settings/settings.json'):
+            with open('settings/settings.json', mode='r') as f:
+                json_dict = json.load(f)
+        else:
+            json_dict = {}
+        json_dict['images_hash'] = str(uuid.uuid4())
+        with open('settings/settings.json', mode='w') as f:
+            json.dump(json_dict, f)
         return {'is_success': True}
+
+    @app.get("/get_images_hash")
+    async def get_images_hash():
+        if not os.path.isfile('settings/settings.json'):
+            return JSONResponse(content={'is_success': False}, status_code=404)
+        with open('settings/settings.json', mode='r') as f:
+            ret_hash = json.load(f)['images_hash']
+        return {'hash': ret_hash}
 
     class CopyImagesRequest(BaseModel):
         path: str
@@ -215,6 +233,8 @@ def main(args):
         if args.net_mode == 'none':
             subprocess.Popen(["client\\MascotGirl_Client_ver2\\MascotGirl_Client_ver2.exe", "-start_local"])
             uvicorn.run(app, host='127.0.0.1', port=55007)
+        elif args.net_mode == 'debug':
+            uvicorn.run(app, host='127.0.0.1', port=55007)
         else:
             if args.net_mode == 'local_net':
                 if os.name == 'nt':
@@ -250,7 +270,7 @@ def main(args):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--net_mode', choices=['none', 'local_net', 'cloudflare'], default='none')
+    parser.add_argument('--net_mode', choices=['none', 'local_net', 'cloudflare', 'debug'], default='none')
     args = parser.parse_args()
 
     try:

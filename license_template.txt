@@ -21,6 +21,7 @@ uLipSync: MIT (Copyright (c) 2021 hecomi)
 UnityCommandLineParser: MIT (Copyright (c) 2020-2022 Voltstro-Studios)
 System.ComponentModel.Annotations: MIT
 McMaster.Extensions.CommandLineUtils: Apache License 2.0
+uAnime4K: MIT (Copyright (c) 2021 SharkShooter)(original Anime4K is Copyright (c) 2019 bloc97)
 
 ## Python and packages{% for info in license_infos %}
 {{ info['name'] }} {{ info['version'] }}: {{ info['license'] }}{% endfor %}
