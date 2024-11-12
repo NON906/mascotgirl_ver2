@@ -164,9 +164,10 @@ def main(args):
 
     @app.get("/get_chat_hermes_infer")
     async def get_chat_hermes_infer():
-        is_finished, ret = chat_hermes.get_recieved_message()
+        is_finished, ret, full_message = chat_hermes.get_recieved_message()
         if ret is None:
             ret = {}
+        ret['full_message'] = full_message
         ret['is_finished'] = is_finished
         return ret
 
@@ -195,7 +196,7 @@ def main(args):
             '--play', '',
         ])
 
-        return {'is_success': True}
+        return {'is_success': os.path.isfile(result_path + '.' + request.format_ext)}
 
     @app.get("/get_voice_infer")
     async def get_voice_infer():
