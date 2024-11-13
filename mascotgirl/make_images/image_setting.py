@@ -48,6 +48,12 @@ def image_setting(image, cascade_path=None, model_name='isnet-anime', skip_resha
         crop_src_pts = np.float32([[[0.0, 0.0]], [[image.shape[1], image.shape[0]]]])
         result_box = cv2.transform(crop_src_pts, mat)
         crop_pts = [int(result_box[0, 0, 0]) + 1, int(result_box[0, 0, 1]) + 1, int(result_box[1, 0, 0]), int(result_box[1, 0, 1])]
+
+        if 256 - crop_pts[0] > crop_pts[2] - 256:
+            crop_pts[2] += (256 - crop_pts[0]) - (crop_pts[2] - 256)
+        else:
+            crop_pts[0] -= (crop_pts[2] - 256) - (256 - crop_pts[0])
+
         if crop_pts[0] < 0:
             crop_pts[0] = 0
         if crop_pts[1] < 0:
@@ -56,11 +62,6 @@ def image_setting(image, cascade_path=None, model_name='isnet-anime', skip_resha
             crop_pts[2] = 512
         if crop_pts[3] > 512:
             crop_pts[3] = 512
-
-        if 256 - crop_pts[0] > crop_pts[2] - 256:
-            crop_pts[2] += (crop_pts[2] - 256) - (256 - crop_pts[0])
-        else:
-            crop_pts[0] += (256 - crop_pts[0]) - (crop_pts[2] - 256)
     else:
         dst = image
         crop_pts = [0, 0, 512, 512]
