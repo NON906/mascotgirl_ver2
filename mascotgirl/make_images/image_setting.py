@@ -56,6 +56,11 @@ def image_setting(image, cascade_path=None, model_name='isnet-anime', skip_resha
             crop_pts[2] = 512
         if crop_pts[3] > 512:
             crop_pts[3] = 512
+
+        if 256 - crop_pts[0] > crop_pts[2] - 256:
+            crop_pts[2] += (crop_pts[2] - 256) - (256 - crop_pts[0])
+        else:
+            crop_pts[0] += (256 - crop_pts[0]) - (crop_pts[2] - 256)
     else:
         dst = image
         crop_pts = [0, 0, 512, 512]
