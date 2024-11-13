@@ -82,13 +82,11 @@ class ChatHermes:
 
                 print('Auto setting n_gpu_layers is ' + str(n_gpu_layers) + '.')
 
-        self.n_ctx = n_ctx
-
-        self.llm = LlamaCpp(
+        llm = LlamaCpp(
             model_path=download_path,
             n_gpu_layers=n_gpu_layers,
             n_batch=n_batch,
-            n_ctx=self.n_ctx,
+            n_ctx=n_ctx,
             streaming=True,
             stop=['<|im_end|>', ],
             max_tokens=1500,
@@ -96,11 +94,11 @@ class ChatHermes:
             repetition_penalty=1.1,
         )
 
-        self.prompt = TemplateMessagesPrompt(
+        prompt = TemplateMessagesPrompt(
             input_variables=['history', ],
         )
 
-        self.chain = self.prompt | self.llm
+        self.chain = prompt | llm
 
     def run_infer(self, prompt):
         if self.is_running:
@@ -119,34 +117,9 @@ class ChatHermes:
 
         def invoke():
             self.is_running = True
+
             self.recieved_message = ''
-
-            is_loop = True
-            while is_loop:
-                is_loop = False
-                try:
-                    stream = self.chain.stream({"history": history.messages})
-                except ValueError as e:
-                    if 'exceed context window of' in str(e):
-                        del self.llm
-                        self.n_ctx *= 2
-                        self.llm = LlamaCpp(
-                            model_path=download_path,
-                            n_gpu_layers=n_gpu_layers,
-                            n_batch=n_batch,
-                            n_ctx=self.n_ctx,
-                            streaming=True,
-                            stop=['<|im_end|>', ],
-                            max_tokens=1500,
-                            #temperature=0.8,
-                            repetition_penalty=1.1,
-                        )
-                        self.chain = self.prompt | self.llm
-                        is_loop = True
-                    else:
-                        raise e
-
-            for chunk in stream:
+            for chunk in self.chain.stream({"history": history.messages}):
                 self.recieved_message += chunk
                 if '{' in self.recieved_message and self.recieved_message.count('{') <= self.recieved_message.count('}'):
                     break

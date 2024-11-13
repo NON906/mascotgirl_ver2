@@ -200,7 +200,7 @@ def main(args):
                 settings_dict['llm_repo_name'] = 'NousResearch/Hermes-3-Llama-3.1-8B-GGUF'
             if not 'llm_file_name' in settings_dict or settings_dict['llm_file_name'] == '':
                 settings_dict['llm_file_name'] = 'Hermes-3-Llama-3.1-8B.Q6_K.gguf'
-            chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 2048)
+            chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 4096)
         ret = chat_hermes.run_infer(request.messages)
         return {'is_success': ret}
 
