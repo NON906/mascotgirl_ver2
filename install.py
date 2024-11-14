@@ -45,11 +45,11 @@ if __name__ == "__main__":
         wget('https://www.dropbox.com/s/qmq1dnxrmzsxb4h/two_algo_face_body_rotator.pt?dl=0', 'talking_head_anime_3_demo/data/models/standard_float/two_algo_face_body_rotator.pt')
         make_empty_file('.installed/.tha3')
 
-    while not os.path.isfile('.installed/.client4'):
-        wget('https://github.com/NON906/mascotgirl_ver2_client/releases/download/v2.0.4/MascotGirl_Client_ver2.zip', 'MascotGirl_Client_ver2.zip')
+    while not os.path.isfile('.installed/.client5'):
+        wget('https://github.com/NON906/mascotgirl_ver2_client/releases/download/v2.0.5/MascotGirl_Client_ver2.zip', 'MascotGirl_Client_ver2.zip')
         shutil.unpack_archive('MascotGirl_Client_ver2.zip', 'client')
         os.remove('MascotGirl_Client_ver2.zip')
-        make_empty_file('.installed/.client4')
+        make_empty_file('.installed/.client5')
 
     shutil.copy2('bat/run.bat', '..')
     shutil.copy2('bat/run_local_net.bat', '..')
