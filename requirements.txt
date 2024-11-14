@@ -10,3 +10,5 @@ langchain
 langchain-community
 pycloudflared
 qrcode
+langchain-openai
+langchain-google-genai

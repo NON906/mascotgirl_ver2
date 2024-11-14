@@ -21,9 +21,13 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
 from pydantic import BaseModel
 from conda3rdparty.common import CondaEnv, gather_license_info, CondaPackageFileNotFound, base_license_renderer
+from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
+from google.generativeai.types.safety_types import HarmBlockThreshold, HarmCategory
 
 from mascotgirl.make_images.make_images import make_images
 from mascotgirl.chat_hermes import ChatHermes
+from mascotgirl.chat_langchain import ChatLangchain
 
 def main(args):
     global chat_hermes
@@ -60,7 +64,7 @@ def main(args):
                 new_dict = json.load(f)
         new_dict[request.name] = request.value
 
-        if request.name == 'llm_repo_name' or request.name == 'llm_file_name':
+        if request.name == 'llm_api' or request.name == 'llm_repo_name' or request.name == 'llm_file_name' or request.name == 'llm_api_key' or request.name == 'llm_model_name' or request.name == 'llm_harm_block':
             global chat_hermes
             if chat_hermes is not None:
                 del chat_hermes
@@ -196,11 +200,42 @@ def main(args):
                     settings_dict = json.load(f)
             else:
                 settings_dict = {}
-            if not 'llm_repo_name' in settings_dict or settings_dict['llm_repo_name'] == '':
-                settings_dict['llm_repo_name'] = 'NousResearch/Hermes-3-Llama-3.1-8B-GGUF'
-            if not 'llm_file_name' in settings_dict or settings_dict['llm_file_name'] == '':
-                settings_dict['llm_file_name'] = 'Hermes-3-Llama-3.1-8B.Q6_K.gguf'
-            chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 4096)
+            if not 'llm_api' in settings_dict or settings_dict['llm_api'] == 0:
+                if not 'llm_repo_name' in settings_dict or settings_dict['llm_repo_name'] == '':
+                    settings_dict['llm_repo_name'] = 'NousResearch/Hermes-3-Llama-3.1-8B-GGUF'
+                if not 'llm_file_name' in settings_dict or settings_dict['llm_file_name'] == '':
+                    settings_dict['llm_file_name'] = 'Hermes-3-Llama-3.1-8B.Q6_K.gguf'
+                chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 4096)
+            elif settings_dict['llm_api'] == 1:
+                chat_hermes = ChatLangchain(
+                    ChatOpenAI(
+                        api_key=settings_dict['llm_api_key'],
+                        model=settings_dict['llm_model_name']
+                    )
+                )
+            elif settings_dict['llm_api'] == 2:
+                if not 'llm_harm_block' in settings_dict or settings_dict['llm_harm_block'] == 0:
+                    harm_block = HarmBlockThreshold.BLOCK_NONE
+                elif settings_dict['llm_harm_block'] == 1:
+                    harm_block = HarmBlockThreshold.LOW_AND_ABOVE
+                elif settings_dict['llm_harm_block'] == 2:
+                    harm_block = HarmBlockThreshold.MEDIUM_AND_ABOVE
+                elif settings_dict['llm_harm_block'] == 3:
+                    harm_block = HarmBlockThreshold.ONLY_HIGH
+                safety_settings = {
+                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: harm_block,
+                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: harm_block,
+                    HarmCategory.HARM_CATEGORY_HARASSMENT: harm_block,
+                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: harm_block,
+                }
+                chat_hermes = ChatLangchain(
+                    ChatGoogleGenerativeAI(
+                        model=settings_dict['llm_model_name'],
+                        safety_settings=safety_settings,
+                        google_api_key=settings_dict['llm_api_key']
+                    ),
+                    True
+                )
         ret = chat_hermes.run_infer(request.messages)
         return {'is_success': ret}
 
