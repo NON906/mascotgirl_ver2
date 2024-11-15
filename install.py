@@ -6,6 +6,7 @@ import subprocess
 import sys
 import shutil
 import requests
+import argparse
 
 def wget(url: str, save_path: str):
     if os.path.dirname(save_path) != "":
@@ -18,6 +19,10 @@ def make_empty_file(path: str):
         o.write('')
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--conda_path')
+    args = parser.parse_args()
+    
     while not os.path.isfile('.installed/.wget'):
         urlData = requests.get('https://eternallybored.org/misc/wget/1.21.4/64/wget.exe').content
         os.makedirs('bin', exist_ok=True)
@@ -25,17 +30,15 @@ if __name__ == "__main__":
             f.write(urlData)
         make_empty_file('.installed/.wget')
 
-    subprocess.run(['conda', 'env', 'update', '-f', 'environment.yml'], shell=True)
+    subprocess.run([args.conda_path, 'env', 'update', '-f', 'environment.yml'], shell=True)
 
-    while not os.path.isfile('.installed/.fish_speech'):
-        os.chdir("./fish_speech")
-        subprocess.run(['python', '-m', 'pip', 'install', '-e', '.'])
-        os.chdir("..")
-        make_empty_file('.installed/.fish_speech')
+    os.chdir("./fish_speech")
+    subprocess.run(['python', '-m', 'pip', 'install', '-e', '.'], shell=True)
+    os.chdir("..")
 
-    subprocess.run(['python', '-m', 'pip', 'install', '-r', 'requirements.txt'])
+    subprocess.run(['python', '-m', 'pip', 'install', '-r', 'requirements.txt'], shell=True)
 
-    subprocess.run(['conda', 'clean', '-y', '--all'], shell=True)
+    subprocess.run([args.conda_path, 'clean', '-y', '--all'], shell=True)
 
     while not os.path.isfile('.installed/.tha3'):
         wget('https://www.dropbox.com/s/zp3e5ox57sdws3y/editor.pt?dl=0', 'talking_head_anime_3_demo/data/models/standard_float/editor.pt')

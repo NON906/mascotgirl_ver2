@@ -32,12 +32,8 @@ if NOT EXIST "%~dp0.installed\.git" (
 call "%USERPROFILE%\miniconda3\condabin\conda" activate mascotgirl_ver2
 
 cd "mascotgirl_ver2"
-python install.py
+python install.py --conda_path "%USERPROFILE%\miniconda3\condabin\conda"
 cd ".."
-
-copy "mascotgirl_ver2\bat\run.bat" .
-copy "mascotgirl_ver2\bat\update.bat" .
-copy "mascotgirl_ver2\bat\uninstall.bat" .
 
 echo インストールが完了しました
 pause
