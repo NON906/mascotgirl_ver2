@@ -72,7 +72,7 @@ class ChatHermes:
                     allocated_memory = torch.cuda.memory_allocated(device)
                     free_memory = total_memory - allocated_memory
 
-                    model_size = os.path.getsize(download_path) * 1.1
+                    model_size = os.path.getsize(download_path) * 1.3
                     llm_pre = Llama(model_path=download_path, n_gpu_layers=0)
                     layers_count = int(llm_pre.metadata['llama.block_count'])
 
