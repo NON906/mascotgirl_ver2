@@ -270,6 +270,7 @@ def main(args):
             '--reference_text', reference_text,
             '--output', result_path,
             '--format', request.format_ext,
+            '--temperature', '0.5',
             '--play', '',
         ])
 
