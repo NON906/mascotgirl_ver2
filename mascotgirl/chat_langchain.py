@@ -3,6 +3,7 @@
 
 import os
 import threading
+import asyncio
 
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain.schema import (
@@ -11,14 +12,16 @@ from langchain.schema import (
     SystemMessage,
 )
 from langchain_core.messages.tool import ToolMessage
+from langgraph.prebuilt import create_react_agent
 
 from .chat_hermes import ChatHermesJsonResult
 
 class ChatLangchain:
     is_running = False
 
-    def __init__(self, chat_llm, convert_system=False):
-        self.chat_llm = chat_llm.with_structured_output(ChatHermesJsonResult)
+    def __init__(self, chat_llm, tools, convert_system=False):
+        self.agent_llm = create_react_agent(chat_llm, tools)
+        self.respond_llm = chat_llm.with_structured_output(ChatHermesJsonResult)
         self.convert_system = convert_system
 
     def run_infer(self, prompt):
@@ -42,19 +45,25 @@ class ChatLangchain:
                 else:
                     history.add_message(SystemMessage(mes['content']))
             else:
-                history.add_message(ToolMessage(mes['content'], tool_call_id=''))
+                if self.convert_system:
+                    history.add_user_message('Execution result:\n' + mes['content'])
+                else:
+                    history.add_message(ToolMessage(mes['content'], tool_call_id=''))
 
-        def invoke():
+        async def invoke():
             self.is_running = True
 
             self.recieved_message = None
-            for chunk in self.chat_llm.stream(history.messages):
+
+            agent_result = await self.agent_llm.ainvoke({"messages": history.messages})
+            history.add_messages(agent_result["messages"])
+
+            async for chunk in self.respond_llm.astream(history.messages):
                 self.recieved_message = chunk
 
             self.is_running = False
 
-        invoke_thread = threading.Thread(target=invoke)
-        invoke_thread.start()
+        invoke_thread = asyncio.create_task(invoke())
 
         return True
 

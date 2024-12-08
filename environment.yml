@@ -76,7 +76,7 @@ dependencies:
   - nbformat
   - nest-asyncio
   - notebook
-  - numpy
+  - numpy<=2.0
   - numpy-base
   - openssl
   - packaging
@@ -142,3 +142,5 @@ dependencies:
   - pytorch-cuda=12.1
   - pydantic
   - conda-3rdparty
+  - nodejs
+  - uv

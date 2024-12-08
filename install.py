@@ -38,6 +38,8 @@ if __name__ == "__main__":
 
     subprocess.run(['python', '-m', 'pip', 'install', '-r', 'requirements.txt'], shell=True)
 
+    subprocess.run(['python', '-m', 'pip', 'install', 'pydantic<2.10'])
+
     subprocess.run([args.conda_path, 'clean', '-y', '--all'], shell=True)
 
     while not os.path.isfile('.installed/.tha3'):

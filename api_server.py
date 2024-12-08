@@ -15,6 +15,7 @@ import uvicorn
 import threading
 import json
 import uuid
+import asyncio
 from pathlib import Path
 from faster_whisper import WhisperModel
 from fastapi import FastAPI, File, UploadFile
@@ -24,10 +25,54 @@ from conda3rdparty.common import CondaEnv, gather_license_info, CondaPackageFile
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from google.generativeai.types.safety_types import HarmBlockThreshold, HarmCategory
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+from langchain_mcp import MCPToolkit
 
 from mascotgirl.make_images.make_images import make_images
 from mascotgirl.chat_hermes import ChatHermes
 from mascotgirl.chat_langchain import ChatLangchain
+
+class McpManager:
+    json_mtime = 0.0
+    mcp_tools = []
+    tasks = []
+    is_exit = False
+    loaded_tasks = 0
+
+    async def load_json(self):
+        global chat_hermes
+
+        if os.path.isfile('settings/mcp_config.json') and self.json_mtime != os.path.getmtime('settings/mcp_config.json'):
+            chat_hermes = None
+            self.is_exit = True
+            await asyncio.gather(*self.tasks)
+            self.tasks = []
+            self.mcp_tools = []
+            self.is_exit = False
+            self.json_mtime = os.path.getmtime('settings/mcp_config.json')
+            with open('settings/mcp_config.json', mode='r') as f:
+                mcp_dict_all = json.load(f)
+            self.loaded_tasks = 0
+            for target in mcp_dict_all['mcpServers'].values():
+                self.tasks.append(asyncio.create_task(self.add_server(target)))
+            while self.loaded_tasks < len(self.tasks) and not self.is_exit:
+                await asyncio.sleep(1)
+
+    async def add_server(self, target):
+        server_args = ['/c', target['command'], *target['args']]
+        server_params = StdioServerParameters( 
+            command='cmd', 
+            args=server_args, 
+        )
+        async with stdio_client(server_params) as (read, write): 
+            async with ClientSession(read, write) as session: 
+                toolkit = MCPToolkit(session=session) 
+                await toolkit.initialize() 
+                self.mcp_tools += toolkit.get_tools()
+                self.loaded_tasks += 1
+                while not self.is_exit:
+                    await asyncio.sleep(0.1)
 
 def main(args):
     global chat_hermes
@@ -39,6 +84,7 @@ def main(args):
     os.chdir('..')
 
     chat_hermes = None
+    mcp_manager = McpManager()
 
     app = FastAPI()
 
@@ -194,6 +240,7 @@ def main(args):
     @app.post("/chat_hermes_infer")
     async def chat_hermes_infer(request: ChatHermesInferRequest):
         global chat_hermes
+        await mcp_manager.load_json()
         if chat_hermes is None:
             if os.path.isfile('settings/detail_settings.json'):
                 with open('settings/detail_settings.json', mode='r') as f:
@@ -211,7 +258,8 @@ def main(args):
                     ChatOpenAI(
                         api_key=settings_dict['llm_api_key'],
                         model=settings_dict['llm_model_name']
-                    )
+                    ),
+                    mcp_manager.mcp_tools
                 )
             elif settings_dict['llm_api'] == 2:
                 if not 'llm_harm_block' in settings_dict or settings_dict['llm_harm_block'] == 0:
@@ -234,6 +282,7 @@ def main(args):
                         safety_settings=safety_settings,
                         google_api_key=settings_dict['llm_api_key']
                     ),
+                    mcp_manager.mcp_tools,
                     True
                 )
         ret = chat_hermes.run_infer(request.messages)
