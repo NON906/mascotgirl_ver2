@@ -4,3 +4,6 @@
 [submodule "fish_speech"]
 	path = fish_speech
 	url = https://github.com/fishaudio/fish-speech.git
+[submodule "Hermes_Function_Calling"]
+	path = Hermes_Function_Calling
+	url = https://github.com/NON906/Hermes-Function-Calling.git

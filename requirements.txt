@@ -14,3 +14,4 @@ langchain-openai
 langchain-google-genai
 langgraph
 langchain-mcp
+art
