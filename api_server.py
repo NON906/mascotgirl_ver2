@@ -31,6 +31,7 @@ from langchain_mcp import MCPToolkit
 
 from mascotgirl.make_images.make_images import make_images
 from mascotgirl.chat_hermes import ChatHermes
+from mascotgirl.chat_hermes_agent import ChatHermesAgent
 from mascotgirl.chat_langchain import ChatLangchain
 
 class McpManager:
@@ -252,7 +253,10 @@ def main(args):
                     settings_dict['llm_repo_name'] = 'NousResearch/Hermes-3-Llama-3.1-8B-GGUF'
                 if not 'llm_file_name' in settings_dict or settings_dict['llm_file_name'] == '':
                     settings_dict['llm_file_name'] = 'Hermes-3-Llama-3.1-8B.Q6_K.gguf'
-                chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 4096, mcp_manager.mcp_tools)
+                if len(mcp_manager.mcp_tools) > 0:
+                    chat_hermes = ChatHermesAgent(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 4096, mcp_manager.mcp_tools)
+                else:
+                    chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 4096)
             elif settings_dict['llm_api'] == 1:
                 chat_hermes = ChatLangchain(
                     ChatOpenAI(
