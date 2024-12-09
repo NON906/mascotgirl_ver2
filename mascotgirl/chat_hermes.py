@@ -11,21 +11,20 @@ import asyncio
 
 from langchain.tools import tool
 
-#from langchain_core.pydantic_v1 import BaseModel, Field
-from pydantic import BaseModel, Field
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Hermes_Function_Calling'))
 from functioncall_gguf import ModelInferenceGguf
 sys.path = sys.path[:-1]
 
-class ChatHermesJsonResult(BaseModel):
-    eyebrow: str = Field(description='表示されるあなたの眉 normal/troubled/angry/happy/serious のどれか')
-    eyes: str = Field(description='表示されるあなたの目 normal/closed/happy_closed/relaxed_closed/surprized/wink のどれか')
-    message: str = Field(description='メッセージ（返答）')
-
-@tool("respond", args_schema=ChatHermesJsonResult)
+@tool("respond")
 def respond(eyebrow: str, eyes: str, message: str) -> str:
-    """ユーザーへのメッセージの返答と表情の指定"""
+    """
+    ユーザーへのメッセージの返答と表情の指定
+    
+    Args:
+        eyebrow (str): 表示されるあなたの眉 normal/troubled/angry/happy/serious のどれか
+        eyes (str): 表示されるあなたの目 normal/closed/happy_closed/relaxed_closed/surprized/wink のどれか
+        message (str): メッセージ（返答） 日本語でお願いします
+    """
     return "<完了>"
 
 class ChatHermes:

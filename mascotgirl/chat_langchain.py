@@ -14,7 +14,12 @@ from langchain.schema import (
 from langchain_core.messages.tool import ToolMessage
 from langgraph.prebuilt import create_react_agent
 
-from .chat_hermes import ChatHermesJsonResult
+from pydantic import BaseModel, Field
+
+class ChatHermesJsonResult(BaseModel):
+    eyebrow: str = Field(description='表示されるあなたの眉 normal/troubled/angry/happy/serious のどれか')
+    eyes: str = Field(description='表示されるあなたの目 normal/closed/happy_closed/relaxed_closed/surprized/wink のどれか')
+    message: str = Field(description='メッセージ（返答） 日本語でお願いします')
 
 class ChatLangchain:
     is_running = False
