@@ -75,6 +75,7 @@ class ChatHermesAgent:
         async def invoke():
             self.is_running = True
 
+            self.result = []
             self.result = await self.inference.generate_function_call_async(prompt[-1]['content'], "chatml", None, 5, [respond, ] + self.tools, prompt[:-1], "respond")
 
             self.is_running = False
@@ -85,5 +86,5 @@ class ChatHermesAgent:
 
     def get_recieved_message(self):
         if self.result is None:
-            return not self.is_running, self.inference.get_streaming_args(), ""
-        return not self.is_running, self.inference.get_streaming_args(), self.result[-1]['content']
+            return not self.is_running, self.inference.get_streaming_args(), self.result
+        return not self.is_running, self.inference.get_streaming_args(), self.result

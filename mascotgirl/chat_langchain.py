@@ -13,6 +13,12 @@ from langchain.schema import (
 )
 from langchain_core.messages.tool import ToolMessage
 from langgraph.prebuilt import create_react_agent
+from langchain.schema import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage,
+)
+from langchain_core.messages.tool import ToolMessage
 
 from pydantic import BaseModel, Field
 
@@ -55,16 +61,34 @@ class ChatLangchain:
                 else:
                     history.add_message(ToolMessage(mes['content'], tool_call_id=''))
 
+        output_history = ChatMessageHistory()
+
         async def invoke():
             self.is_running = True
 
             self.recieved_message = None
+            self.recieved_history = []
 
             agent_result = await self.agent_llm.ainvoke({"messages": history.messages})
             history.add_messages(agent_result["messages"])
+            output_history.add_messages(agent_result["messages"])
 
             async for chunk in self.respond_llm.astream(history.messages):
                 self.recieved_message = chunk
+            output_history.add_ai_message(self.recieved_message.json())
+            
+            for mes in await output_history.aget_messages():
+                if type(mes) is tuple:
+                    self.recieved_history.append(mes)
+                else:
+                    if type(mes) is HumanMessage:
+                        self.recieved_history.append({'role': 'user', 'content': mes.content})
+                    elif type(mes) is AIMessage:
+                        self.recieved_history.append({'role': 'assistant', 'content': mes.content})
+                    elif type(mes) is SystemMessage:
+                        self.recieved_history.append({'role': 'system', 'content': mes.content})
+                    else:
+                        self.recieved_history.append({'role': 'tool', 'content': mes.content})
 
             self.is_running = False
 
@@ -74,5 +98,5 @@ class ChatLangchain:
 
     def get_recieved_message(self):
         if self.recieved_message is None:
-            return not self.is_running, {}, ""
-        return not self.is_running, self.recieved_message.dict(), self.recieved_message.json()
+            return not self.is_running, {}, []
+        return not self.is_running, self.recieved_message.dict(), self.recieved_history

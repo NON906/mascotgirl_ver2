@@ -294,10 +294,10 @@ def main(args):
 
     @app.get("/get_chat_hermes_infer")
     async def get_chat_hermes_infer():
-        is_finished, ret, full_message = chat_hermes.get_recieved_message()
+        is_finished, ret, history = chat_hermes.get_recieved_message()
         if ret is None:
             ret = {}
-        ret['full_message'] = full_message
+        ret['history'] = history
         ret['is_finished'] = is_finished
         return ret
 

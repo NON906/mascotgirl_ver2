@@ -138,5 +138,5 @@ class ChatHermes:
             rsplit_size = recieved_message.count('}') - recieved_message.count('{') + 1
             if rsplit_size > 0:
                 recieved_message = recieved_message.rsplit('}', rsplit_size)[0] + '}'
-            return not self.is_running, force_parse_json(recieved_message), recieved_message
-        return not self.is_running, {}, ""
+            return not self.is_running, force_parse_json(recieved_message), [{'role': 'assistant', 'content': recieved_message}]
+        return not self.is_running, {}, []
