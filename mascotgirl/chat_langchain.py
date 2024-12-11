@@ -32,7 +32,10 @@ class ChatLangchain:
     is_running = False
 
     def __init__(self, chat_llm, tools, convert_system=False):
-        self.agent_llm = create_react_agent(chat_llm, tools)
+        if tools is not None and len(tools) > 0:
+            self.agent_llm = create_react_agent(chat_llm, tools)
+        else:
+            self.agent_llm = None
         self.respond_llm = chat_llm.with_structured_output(ChatHermesJsonResult)
         self.convert_system = convert_system
 
@@ -75,9 +78,10 @@ class ChatLangchain:
             self.recieved_message = None
             self.recieved_history = []
 
-            agent_result = await self.agent_llm.ainvoke({"messages": history.messages})
-            history.add_messages(agent_result["messages"])
-            output_history.add_messages(agent_result["messages"])
+            if self.agent_llm is not None:
+                agent_result = await self.agent_llm.ainvoke({"messages": history.messages})
+                history.add_messages(agent_result["messages"])
+                output_history.add_messages(agent_result["messages"])
 
             async for chunk in self.respond_llm.astream(history.messages):
                 self.recieved_message = chunk
