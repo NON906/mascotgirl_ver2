@@ -254,9 +254,9 @@ def main(args):
                 if not 'llm_file_name' in settings_dict or settings_dict['llm_file_name'] == '':
                     settings_dict['llm_file_name'] = 'Hermes-3-Llama-3.1-8B.Q6_K.gguf'
                 if len(mcp_manager.mcp_tools) > 0:
-                    chat_hermes = ChatHermesAgent(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 4096, mcp_manager.mcp_tools)
+                    chat_hermes = ChatHermesAgent(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 8192, mcp_manager.mcp_tools)
                 else:
-                    chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 4096)
+                    chat_hermes = ChatHermes(settings_dict['llm_repo_name'], settings_dict['llm_file_name'], 'auto', 128, 8192)
             elif settings_dict['llm_api'] == 1:
                 chat_hermes = ChatLangchain(
                     ChatOpenAI(

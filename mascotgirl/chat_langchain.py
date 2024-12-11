@@ -4,6 +4,7 @@
 import os
 import threading
 import asyncio
+import json
 
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain.schema import (
@@ -49,7 +50,12 @@ class ChatLangchain:
                     history.add_user_message(system_to_user_message + mes['content'])
                     system_to_user_message = None
             elif mes['role'] == 'assistant':
-                history.add_ai_message(mes['content'])
+                if not self.convert_system and 'tool_calls' in mes and mes['tool_calls'] is not None and mes['tool_calls'] != '':
+                    add_message = AIMessage(mes['content'])
+                    add_message.tool_calls = json.loads(mes['tool_calls'])
+                    history.add_message(add_message)
+                else:
+                    history.add_ai_message(mes['content'])
             elif mes['role'] == 'system':
                 if self.convert_system:
                     system_to_user_message = mes['content'] + '\n---\n'
@@ -57,9 +63,9 @@ class ChatLangchain:
                     history.add_message(SystemMessage(mes['content']))
             else:
                 if self.convert_system:
-                    history.add_user_message('Execution result:\n' + mes['content'])
+                    history.add_user_message('実行結果:\n' + mes['content'])
                 else:
-                    history.add_message(ToolMessage(mes['content'], tool_call_id=''))
+                    history.add_message(ToolMessage(mes['content'], tool_call_id=mes['tool_calls']))
 
         output_history = ChatMessageHistory()
 
@@ -84,11 +90,11 @@ class ChatLangchain:
                     if type(mes) is HumanMessage:
                         self.recieved_history.append({'role': 'user', 'content': mes.content})
                     elif type(mes) is AIMessage:
-                        self.recieved_history.append({'role': 'assistant', 'content': mes.content})
+                        self.recieved_history.append({'role': 'assistant', 'content': mes.content, 'tool_calls': json.dumps(mes.tool_calls)})
                     elif type(mes) is SystemMessage:
                         self.recieved_history.append({'role': 'system', 'content': mes.content})
                     else:
-                        self.recieved_history.append({'role': 'tool', 'content': mes.content})
+                        self.recieved_history.append({'role': 'tool', 'content': mes.content, 'tool_calls': mes.tool_call_id})
 
             self.is_running = False
 
