@@ -7,4 +7,8 @@ git pull
 python install.py --conda_path "%USERPROFILE%\miniconda3\condabin\conda"
 cd ..
 call "%USERPROFILE%\miniconda3\condabin\conda" deactivate
+
+echo インストールが完了しました
+pause
+
 endlocal

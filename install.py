@@ -38,6 +38,10 @@ if __name__ == "__main__":
 
     subprocess.run(['python', '-m', 'pip', 'install', '-r', 'requirements.txt'], shell=True)
 
+    os.chdir("./bert_vits2")
+    subprocess.run(['python', '-m', 'pip', 'install', '-r', 'requirements.txt'], shell=True)
+    os.chdir("..")
+
     subprocess.run(['python', '-m', 'pip', 'install', 'pydantic<2.10'])
 
     subprocess.run([args.conda_path, 'clean', '-y', '--all'], shell=True)

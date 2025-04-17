@@ -1,0 +1,4 @@
+style-bert-vits2
+PySoundFile
+fastapi
+uvicorn[standard]
