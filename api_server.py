@@ -33,6 +33,7 @@ from mascotgirl.make_images.make_images import make_images
 from mascotgirl.chat_hermes import ChatHermes
 from mascotgirl.chat_hermes_agent import ChatHermesAgent
 from mascotgirl.chat_langchain import ChatLangchain
+from mascotgirl import bert_vits2
 
 class McpManager:
     json_mtime = 0.0
@@ -80,9 +81,7 @@ def main(args):
 
     td = tempfile.TemporaryDirectory()
 
-    os.chdir('fish_speech')
-    voice_process = subprocess.Popen(['start.bat'])
-    os.chdir('..')
+    voice_process = None
 
     chat_hermes = None
     mcp_manager = McpManager()
@@ -307,27 +306,62 @@ def main(args):
 
     @app.post("/voice_infer")
     async def voice_infer(request: VoiceInferRequest):
+        nonlocal voice_process
+
         del_paths = glob.glob(os.path.join(td.name, 'result.*'))
         for del_path in del_paths:
             os.remove(del_path)
 
-        reference_path = glob.glob('settings/reference_voice.*')[0]
-        result_path = os.path.join(td.name, 'result')
+        if os.path.isfile('settings/detail_settings.json'):
+            with open('settings/detail_settings.json', mode='r') as f:
+                settings_dict = json.load(f)
+        else:
+            settings_dict = {}
 
-        with open('settings/reference_text.txt', mode='r') as f:
-            reference_text = f.read()
+        if not 'voice_api' in settings_dict or settings_dict['voice_api'] == 0:
+            if voice_process is None:
+                os.chdir('fish_speech')
+                voice_process = subprocess.Popen(['start.bat'])
+                os.chdir('..')
 
-        subprocess.run(['python', '-m', 'fish_speech.tools.post_api',
-            '--text', request.text,
-            '--reference_audio', reference_path,
-            '--reference_text', reference_text,
-            '--output', result_path,
-            '--format', request.format_ext,
-            '--temperature', '0.5',
-            '--play', '',
-        ])
+                loop_flag = True
+                run_flag = True
+                while loop_flag:
+                    await asyncio.sleep(0.1)
+                    try:
+                        res = requests.post('http://localhost:8080/v1/health')
+                        loop_flag = res.json()['status'] != 'ok'
+                    except requests.exceptions.ConnectionError:
+                        loop_flag = True
+                    except:
+                        loop_flag = False
+                        run_flag = False
 
-        return {'is_success': os.path.isfile(result_path + '.' + request.format_ext)}
+            if not run_flag:
+                return {'is_success': False }
+
+            reference_path = glob.glob('settings/reference_voice.*')[0]
+            result_path = os.path.join(td.name, 'result')
+
+            with open('settings/reference_text.txt', mode='r') as f:
+                reference_text = f.read()
+
+            subprocess.run(['python', '-m', 'fish_speech.tools.post_api',
+                '--text', request.text,
+                '--reference_audio', reference_path,
+                '--reference_text', reference_text,
+                '--output', result_path,
+                '--format', request.format_ext,
+                '--temperature', '0.5',
+                '--play', '',
+            ])
+
+            return {'is_success': os.path.isfile(result_path + '.' + request.format_ext)}
+        elif settings_dict['voice_api'] == 1:
+            bert_vits2.change_dirs([settings_dict['voice_model_dir'], ])
+            write_path = os.path.join(td.name, 'result.' + request.format_ext)
+            await bert_vits2.voice(request.text, encoding='utf-8', write_path=write_path)
+            return {'is_success': os.path.isfile(write_path)}
 
     @app.get("/get_voice_infer")
     async def get_voice_infer():
@@ -346,54 +380,41 @@ def main(args):
         ret = base_license_renderer(out, Path('license_template.txt'))
         return ret
 
-    loop_flag = True
-    run_flag = True
-    while loop_flag:
-        time.sleep(0.1)
-        try:
-            res = requests.post('http://localhost:8080/v1/health')
-            loop_flag = res.json()['status'] != 'ok'
-        except requests.exceptions.ConnectionError:
-            loop_flag = True
-        except:
-            loop_flag = False
-            run_flag = False
+    if args.net_mode == 'none':
+        subprocess.Popen(["client\\MascotGirl_Client_ver2\\MascotGirl_Client_ver2.exe", "-start_local"])
+        uvicorn.run(app, host='127.0.0.1', port=55007)
+    elif args.net_mode == 'debug':
+        uvicorn.run(app, host='127.0.0.1', port=55007)
+    else:
+        if args.net_mode == 'local_net':
+            if os.name == 'nt':
+                import socket
+                host = socket.gethostname()
+                ipaddress = socket.gethostbyname(host)
+                http_url = 'http://' + ipaddress + ':' + str(55007)
+        elif args.net_mode == 'cloudflare':
+            from pycloudflared import try_cloudflare
+            cloudflare_result = try_cloudflare(port=55007)
+            http_url = cloudflare_result.tunnel
 
-    if run_flag:
-        if args.net_mode == 'none':
-            subprocess.Popen(["client\\MascotGirl_Client_ver2\\MascotGirl_Client_ver2.exe", "-start_local"])
-            uvicorn.run(app, host='127.0.0.1', port=55007)
-        elif args.net_mode == 'debug':
-            uvicorn.run(app, host='127.0.0.1', port=55007)
-        else:
-            if args.net_mode == 'local_net':
-                if os.name == 'nt':
-                    import socket
-                    host = socket.gethostname()
-                    ipaddress = socket.gethostbyname(host)
-                    http_url = 'http://' + ipaddress + ':' + str(55007)
-            elif args.net_mode == 'cloudflare':
-                from pycloudflared import try_cloudflare
-                cloudflare_result = try_cloudflare(port=55007)
-                http_url = cloudflare_result.tunnel
+        import qrcode
+        open_qrcode = True
+        qrcode_pil = qrcode.make('mascotgirl2://' + http_url)
+        qrcode_cv2 = np.array(qrcode_pil, dtype=np.uint8) * 255
+        def qrcode_thread_func():
+            cv2.imshow('Please scan.', qrcode_cv2)
+            while open_qrcode:
+                cv2.waitKey(1)
+        qrcode_thread = threading.Thread(target=qrcode_thread_func)
+        qrcode_thread.start()
 
-            import qrcode
-            open_qrcode = True
-            qrcode_pil = qrcode.make('mascotgirl2://' + http_url)
-            qrcode_cv2 = np.array(qrcode_pil, dtype=np.uint8) * 255
-            def qrcode_thread_func():
-                cv2.imshow('Please scan.', qrcode_cv2)
-                while open_qrcode:
-                    cv2.waitKey(1)
-            qrcode_thread = threading.Thread(target=qrcode_thread_func)
-            qrcode_thread.start()
+        uvicorn.run(app, host='0.0.0.0', port=55007)
 
-            uvicorn.run(app, host='0.0.0.0', port=55007)
+        open_qrcode = False
+        cv2.destroyWindow('Please scan.')
 
-            open_qrcode = False
-            cv2.destroyWindow('Please scan.')
-
-    voice_process.kill()
+    if voice_process is not None:
+        voice_process.kill()
     if chat_hermes is not None:
         del chat_hermes
 

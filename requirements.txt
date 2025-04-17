@@ -16,3 +16,6 @@ langchain-google-genai
 langgraph
 langchain-mcp
 art
+style-bert-vits2
+PySoundFile
+pyopenjtalk
