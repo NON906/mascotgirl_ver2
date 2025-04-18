@@ -67,7 +67,7 @@ def main(args):
     async def set_setting(request: SetSettingRequest):
         new_dict = {}
         if os.path.isfile('settings/detail_settings.json'):
-            with open('settings/detail_settings.json', mode='r') as f:
+            with open('settings/detail_settings.json', mode='r', encoding='utf-8') as f:
                 new_dict = json.load(f)
         new_dict[request.name] = request.value
 
@@ -77,7 +77,7 @@ def main(args):
                 del chat_hermes
             chat_hermes = None
 
-        with open('settings/detail_settings.json', mode='w') as f:
+        with open('settings/detail_settings.json', mode='w', encoding='utf-8') as f:
             json.dump(new_dict, f)
         return {'is_success': True}
 
@@ -87,12 +87,12 @@ def main(args):
         img = cv2.imdecode(arr, flags=cv2.IMREAD_UNCHANGED)
         make_images(img, 'settings/images')
         if os.path.isfile('settings/settings.json'):
-            with open('settings/settings.json', mode='r') as f:
+            with open('settings/settings.json', mode='r', encoding='utf-8') as f:
                 json_dict = json.load(f)
         else:
             json_dict = {}
         json_dict['images_hash'] = str(uuid.uuid4())
-        with open('settings/settings.json', mode='w') as f:
+        with open('settings/settings.json', mode='w', encoding='utf-8') as f:
             json.dump(json_dict, f)
         return {'is_success': True}
 
@@ -100,7 +100,7 @@ def main(args):
     async def get_images_hash():
         if not os.path.isfile('settings/settings.json'):
             return JSONResponse(content={'is_success': False}, status_code=404)
-        with open('settings/settings.json', mode='r') as f:
+        with open('settings/settings.json', mode='r', encoding='utf-8') as f:
             ret_hash = json.load(f)['images_hash']
         return {'hash': ret_hash}
 
@@ -150,7 +150,7 @@ def main(args):
     
     @app.post("/set_system_message")
     async def set_system_message(request: SetSystemMessageRequest):
-        with open('settings/system_message.txt', mode='w') as f:
+        with open('settings/system_message.txt', mode='w', encoding='utf-8') as f:
             f.write(request.message)
         return {'is_success': True}
 
@@ -158,7 +158,7 @@ def main(args):
     async def get_system_message():
         if not os.path.isfile('settings/system_message.txt'):
             return JSONResponse(content={'is_success': False}, status_code=404)
-        with open('settings/system_message.txt', mode='r') as f:
+        with open('settings/system_message.txt', mode='r', encoding='utf-8') as f:
             message = f.read()
         return {'message': message}
 
@@ -188,7 +188,7 @@ def main(args):
             for segment in segments:
                 reference_text += segment.text
             
-            with open('settings/reference_text.txt', mode='w') as f:
+            with open('settings/reference_text.txt', mode='w', encoding='utf-8') as f:
                 f.write(reference_text)
 
             return {'reference_text': reference_text}
@@ -204,7 +204,7 @@ def main(args):
         await mcp_manager.load()
         if chat_hermes is None:
             if os.path.isfile('settings/detail_settings.json'):
-                with open('settings/detail_settings.json', mode='r') as f:
+                with open('settings/detail_settings.json', mode='r', encoding='utf-8') as f:
                     settings_dict = json.load(f)
             else:
                 settings_dict = {}
@@ -281,19 +281,19 @@ def main(args):
             os.remove(del_path)
 
         if os.path.isfile('settings/detail_settings.json'):
-            with open('settings/detail_settings.json', mode='r') as f:
+            with open('settings/detail_settings.json', mode='r', encoding='utf-8') as f:
                 settings_dict = json.load(f)
         else:
             settings_dict = {}
 
         if not 'voice_api' in settings_dict or settings_dict['voice_api'] == 0:
+            run_flag = True
             if voice_process is None:
                 os.chdir('fish_speech')
                 voice_process = subprocess.Popen(['start.bat'])
                 os.chdir('..')
 
                 loop_flag = True
-                run_flag = True
                 while loop_flag:
                     await asyncio.sleep(0.1)
                     try:
@@ -311,7 +311,7 @@ def main(args):
             reference_path = glob.glob('settings/reference_voice.*')[0]
             result_path = os.path.join(td.name, 'result')
 
-            with open('settings/reference_text.txt', mode='r') as f:
+            with open('settings/reference_text.txt', mode='r', encoding='utf-8') as f:
                 reference_text = f.read()
 
             subprocess.run(['python', '-m', 'fish_speech.tools.post_api',
