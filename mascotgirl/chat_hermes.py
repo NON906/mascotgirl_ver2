@@ -91,7 +91,7 @@ class ChatHermes:
             stop=['<|im_end|>', ],
             max_tokens=1500,
             temperature=0.8,
-            repetition_penalty=1.1,
+            #repetition_penalty=1.1,
         )
 
         prompt = TemplateMessagesPrompt(
