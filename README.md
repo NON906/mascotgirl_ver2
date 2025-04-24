@@ -38,3 +38,9 @@ install.batを[こちらからダウンロード](https://github.com/NON906/masc
 Androidのクライアントを[こちら](https://github.com/NON906/mascotgirl_ver2_client/releases)で配布しています。  
 apkをダウンロードした後に、それをインストールしてください。  
 サーバーについては「run_local_net.bat」か「run_cloudflare.bat」で事前に起動してください（apk単独では動作しません）。
+
+## MCPについて（詳しい人向き）
+
+``settings/mcp_config.json``を作成して記載することで[MCPサーバー](https://modelcontextprotocol.io)を動作させることができます。  
+jsonの記載方法はClaude for Desktopの``claude_desktop_config.json``に準拠します。  
+（現在テスト版です。一部設定では動作しないかもしれません）
