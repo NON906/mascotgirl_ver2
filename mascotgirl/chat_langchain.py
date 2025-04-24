@@ -81,6 +81,9 @@ class ChatLangchain:
             if self.agent_llm is not None:
                 agent_result = await self.agent_llm.ainvoke({"messages": history.messages})
                 history.add_messages(agent_result["messages"])
+                #import sys
+                #print(agent_result["messages"][-1].content, file=sys.stderr)
+                history.add_user_message('Please print out the last reply as is (if the content is not in Japanese, please translate it into Japanese).')
                 output_history.add_messages(agent_result["messages"])
 
             async for chunk in self.respond_llm.astream(history.messages):
