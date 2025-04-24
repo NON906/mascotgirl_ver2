@@ -51,7 +51,7 @@ if __name__ == "__main__":
         make_empty_file('.installed/.tha3')
 
     while not os.path.isfile('.installed/.client5'):
-        wget('https://github.com/NON906/mascotgirl_ver2_client/releases/download/v2.0.5/MascotGirl_Client_ver2.zip', 'MascotGirl_Client_ver2.zip')
+        wget('https://github.com/NON906/mascotgirl_ver2_client/releases/download/v2.1.0/MascotGirl_Client_ver2.zip', 'MascotGirl_Client_ver2.zip')
         shutil.unpack_archive('MascotGirl_Client_ver2.zip', 'client')
         os.remove('MascotGirl_Client_ver2.zip')
         make_empty_file('.installed/.client5')
